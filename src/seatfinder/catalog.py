@@ -38,7 +38,8 @@ class Catalog:
                     aliases=list(raw.get("aliases", [])),
                     bms_slug=raw.get("bms_slug") or slugify(raw["name"]),
                     bms_region=raw.get("bms_region"),
-                    district_city_key=raw.get("district_city_key") or slugify(raw["name"]),
+                    district_city_key=raw.get("district_city_key")
+                    or slugify(raw["name"]),
                     lat=float(raw.get("lat", 0)),
                     lng=float(raw.get("lng", 0)),
                 )
@@ -54,7 +55,11 @@ class Catalog:
                     release_date=raw.get("release_date"),
                     bms_event_code=bms.get("event_code"),
                     bms_slug=bms.get("slug"),
-                    district_content_id=(str(district["content_id"]) if district.get("content_id") else None),
+                    district_content_id=(
+                        str(district["content_id"])
+                        if district.get("content_id")
+                        else None
+                    ),
                     district_slug=district.get("slug"),
                 )
             )
@@ -70,14 +75,18 @@ class Catalog:
     def resolve_city(self, value: str) -> City:
         wanted = normalize(value)
         if not wanted:
-            raise NotFoundError("City is required", hint="Pass --city or run seatfinder interactively")
+            raise NotFoundError(
+                "City is required", hint="Pass --city or run seatfinder interactively"
+            )
         for city in self._cities:
             names = [city.name, city.bms_slug, city.district_city_key, *city.aliases]
             if wanted in {normalize(name) for name in names}:
                 return city
         for city in self._cities:
             names = [city.name, city.bms_slug, city.district_city_key, *city.aliases]
-            if any(wanted in normalize(name) or normalize(name) in wanted for name in names):
+            if any(
+                wanted in normalize(name) or normalize(name) in wanted for name in names
+            ):
                 return city
         raise NotFoundError(
             f"Unknown city: {value}",
@@ -102,6 +111,8 @@ class Catalog:
                 return movie
         for movie in self._movies:
             names = [movie.title, *movie.aliases]
-            if any(wanted in normalize(name) or normalize(name) in wanted for name in names):
+            if any(
+                wanted in normalize(name) or normalize(name) in wanted for name in names
+            ):
                 return movie
         return MovieRef(title=value.strip(), aliases=[], default=False)

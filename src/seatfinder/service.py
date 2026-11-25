@@ -77,7 +77,9 @@ class SeatService:
 
         wanted = normalize(value)
         if not wanted:
-            raise NotFoundError("City is required", hint="Pass --city or run seatfinder interactively")
+            raise NotFoundError(
+                "City is required", hint="Pass --city or run seatfinder interactively"
+            )
         try:
             regions = self.providers["bms"].regions()
         except SeatfinderError as exc:
@@ -89,7 +91,11 @@ class SeatService:
         candidates = [
             region
             for region in regions
-            if wanted in {normalize(region.get("name") or ""), normalize(region.get("slug") or "")}
+            if wanted
+            in {
+                normalize(region.get("name") or ""),
+                normalize(region.get("slug") or ""),
+            }
         ]
         if not candidates:
             candidates = [
@@ -130,7 +136,9 @@ class SeatService:
             try:
                 results = self.providers[platform].search_movies(city, query)
             except SeatfinderError as exc:
-                warnings.append(Warning(code=exc.code, message=exc.message, platform=platform))
+                warnings.append(
+                    Warning(code=exc.code, message=exc.message, platform=platform)
+                )
                 continue
             for result in results:
                 key = normalize(result["title"])
@@ -160,10 +168,16 @@ class SeatService:
                     }
         if not combined:
             default = self.catalog.default_movie()
-            if normalize(query) in {normalize(default.title), *[normalize(a) for a in default.aliases]}:
+            if normalize(query) in {
+                normalize(default.title),
+                *[normalize(a) for a in default.aliases],
+            }:
                 combined[normalize(default.title)] = {
                     "title": default.title,
-                    "bms": {"event_code": default.bms_event_code, "slug": default.bms_slug},
+                    "bms": {
+                        "event_code": default.bms_event_code,
+                        "slug": default.bms_slug,
+                    },
                     "district": {
                         "content_id": default.district_content_id,
                         "slug": default.district_slug,
@@ -185,7 +199,9 @@ class SeatService:
                     bundle = self._fetch_shows_on(city, movie, earliest)
         return bundle
 
-    def _target_date(self, city: City, movie: MovieRef, date: str | None) -> tuple[str, bool]:
+    def _target_date(
+        self, city: City, movie: MovieRef, date: str | None
+    ) -> tuple[str, bool]:
         if date and date not in {"earliest", "any"}:
             return _validate_date(date), False
         today = today_ist()
@@ -241,7 +257,10 @@ class SeatService:
             return list(shows)
         if self.platform != "both":
             return list(shows[:limit])
-        buckets = {platform: [show for show in shows if show.platform == platform] for platform in self._selected}
+        buckets = {
+            platform: [show for show in shows if show.platform == platform]
+            for platform in self._selected
+        }
         selected: list[Show] = []
         while len(selected) < limit and any(buckets.values()):
             for platform in self._selected:
@@ -273,7 +292,9 @@ class SeatService:
             provider = self.providers[show.platform]
             item = show.to_dict()
             try:
-                seat_map: SeatMap = provider.fetch_seat_map(bundle.city, bundle.movie, show)
+                seat_map: SeatMap = provider.fetch_seat_map(
+                    bundle.city, bundle.movie, show
+                )
                 blocks = find_blocks(
                     seat_map,
                     min_seats=min_seats,

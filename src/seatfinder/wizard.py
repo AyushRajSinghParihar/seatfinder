@@ -32,21 +32,37 @@ def run_wizard(
         include_previews=include_previews,
     )
     cities = catalog_service.catalog.cities
-    popular = ["Bengaluru", "Mumbai", "Delhi", "Hyderabad", "Chennai", "Pune", "Kolkata"]
+    popular = [
+        "Bengaluru",
+        "Mumbai",
+        "Delhi",
+        "Hyderabad",
+        "Chennai",
+        "Pune",
+        "Kolkata",
+    ]
     default_city = config.default_city or "Bengaluru"
     city_choices = [city.name for city in cities if city.name in popular]
-    console.print("[bold]seatfinder[/bold] — find empty seats on BookMyShow and District")
-    console.print("Popular cities: " + ", ".join(city_choices or [c.name for c in cities[:7]]))
+    console.print(
+        "[bold]seatfinder[/bold] — find empty seats on BookMyShow and District"
+    )
+    console.print(
+        "Popular cities: " + ", ".join(city_choices or [c.name for c in cities[:7]])
+    )
     city_name = typer.prompt("City", default=default_city).strip()
 
     movie_default = config.default_movie
     movie_name = typer.prompt("Movie", default=movie_default).strip() or movie_default
 
-    platform = typer.prompt(
-        "Platform (both/bms/district)",
-        default=config.default_platform,
-        show_default=True,
-    ).strip().lower()
+    platform = (
+        typer.prompt(
+            "Platform (both/bms/district)",
+            default=config.default_platform,
+            show_default=True,
+        )
+        .strip()
+        .lower()
+    )
     if platform not in {"both", "bms", "district"}:
         platform = "both"
 
@@ -68,7 +84,9 @@ def run_wizard(
     date_default = bundle.date
     if bundle.show_dates:
         console.print("Selling dates: " + ", ".join(bundle.show_dates[:14]))
-        date_value = typer.prompt("Date (YYYY-MM-DD or earliest)", default=date_default).strip()
+        date_value = typer.prompt(
+            "Date (YYYY-MM-DD or earliest)", default=date_default
+        ).strip()
     else:
         date_value = date_default
     if date_value not in {"earliest", "any"}:
@@ -79,11 +97,15 @@ def run_wizard(
         return
 
     min_seats = typer.prompt("Minimum seats together", default=1, type=int)
-    choice = typer.prompt(
-        "Inspect which shows? (top/all/number)",
-        default="top",
-        show_default=True,
-    ).strip().lower()
+    choice = (
+        typer.prompt(
+            "Inspect which shows? (top/all/number)",
+            default="top",
+            show_default=True,
+        )
+        .strip()
+        .lower()
+    )
     limit: int | None = 5
     if choice == "all":
         limit = None
@@ -100,4 +122,6 @@ def run_wizard(
         detail="summary",
     )
     print_seat_results(results, console, show_map=False)
-    console.print("Tip: use --json for agent-friendly output and --map for a seat grid.")
+    console.print(
+        "Tip: use --json for agent-friendly output and --map for a seat grid."
+    )

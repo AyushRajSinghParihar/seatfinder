@@ -17,7 +17,9 @@ class SeatfinderError(Exception):
     exit_code = EXIT_UPSTREAM
     retryable = False
 
-    def __init__(self, message: str, *, hint: str | None = None, detail: str | None = None):
+    def __init__(
+        self, message: str, *, hint: str | None = None, detail: str | None = None
+    ):
         super().__init__(message)
         self.message = message
         self.hint = hint

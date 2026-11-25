@@ -12,7 +12,9 @@ from .jsonutil import dumps
 from .models import City, Show, Warning
 
 
-def make_console(*, quiet: bool = False, no_color: bool = False) -> tuple[Console, Console]:
+def make_console(
+    *, quiet: bool = False, no_color: bool = False
+) -> tuple[Console, Console]:
     out = Console(
         stderr=False,
         quiet=quiet,
@@ -90,7 +92,11 @@ def print_shows(shows: list[Show], console: Console, *, date: str) -> None:
             start = show.starts_at[:10] + " " + show.starts_at[11:16]
         price = ""
         if show.price_min is not None and show.price_max is not None:
-            price = f"₹{show.price_min:.0f}" if show.price_min == show.price_max else f"₹{show.price_min:.0f}-{show.price_max:.0f}"
+            price = (
+                f"₹{show.price_min:.0f}"
+                if show.price_min == show.price_max
+                else f"₹{show.price_min:.0f}-{show.price_max:.0f}"
+            )
         table.add_row(
             str(index),
             show.platform,
@@ -103,7 +109,9 @@ def print_shows(shows: list[Show], console: Console, *, date: str) -> None:
     console.print(table)
 
 
-def print_seat_results(results: list[dict[str, Any]], console: Console, *, show_map: bool = False) -> None:
+def print_seat_results(
+    results: list[dict[str, Any]], console: Console, *, show_map: bool = False
+) -> None:
     if not results:
         console.print("[yellow]No shows to inspect.[/yellow]")
         return

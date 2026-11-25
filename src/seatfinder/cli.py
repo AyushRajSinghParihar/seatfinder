@@ -74,7 +74,9 @@ def _runtime(
     )
 
 
-def _service(runtime: Runtime, *, platform: str, no_cache: bool, include_previews: bool) -> SeatService:
+def _service(
+    runtime: Runtime, *, platform: str, no_cache: bool, include_previews: bool
+) -> SeatService:
     return SeatService(
         runtime.config,
         platform=platform,
@@ -117,10 +119,14 @@ def _strict_check(bundle, runtime: Runtime, command: str) -> None:
 @app.callback()
 def root(
     ctx: typer.Context,
-    json_output: bool = typer.Option(False, "--json", help="Machine-readable JSON output"),
+    json_output: bool = typer.Option(
+        False, "--json", help="Machine-readable JSON output"
+    ),
     no_color: bool = typer.Option(False, "--no-color", help="Disable terminal colors"),
     quiet: bool = typer.Option(False, "--quiet", help="Suppress progress output"),
-    version: bool = typer.Option(False, "--version", is_eager=True, help="Print version and exit"),
+    version: bool = typer.Option(
+        False, "--version", is_eager=True, help="Print version and exit"
+    ),
 ) -> None:
     if version:
         typer.echo(__version__)
@@ -155,12 +161,18 @@ def cities_command(
     no_color = no_color or bool(globals_.get("no_color"))
     quiet = quiet or bool(globals_.get("quiet"))
 
-    runtime = _runtime(json_output=json_output, pretty=pretty, no_color=no_color, quiet=quiet)
+    runtime = _runtime(
+        json_output=json_output, pretty=pretty, no_color=no_color, quiet=quiet
+    )
     try:
-        service = _service(runtime, platform="both", no_cache=True, include_previews=False)
+        service = _service(
+            runtime, platform="both", no_cache=True, include_previews=False
+        )
         data = [city.to_dict() for city in service.catalog.cities]
         if json_output:
-            print_json(envelope("cities", ok=True, data={"cities": data}), pretty=pretty)
+            print_json(
+                envelope("cities", ok=True, data={"cities": data}), pretty=pretty
+            )
         else:
             out, _ = make_console(quiet=quiet, no_color=no_color)
             print_cities(service.catalog.cities, out)
@@ -196,7 +208,9 @@ def movies_command(
         timeout=timeout,
         proxy=proxy,
     )
-    service = _service(runtime, platform=platform, no_cache=no_cache, include_previews=False)
+    service = _service(
+        runtime, platform=platform, no_cache=no_cache, include_previews=False
+    )
     try:
         city_obj, _ = service.resolve(city, None)
         results = service.search_movies(city_obj, query or runtime.config.default_movie)
@@ -205,7 +219,10 @@ def movies_command(
                 envelope(
                     "movies",
                     ok=True,
-                    query={"city": city_obj.name, "query": query or runtime.config.default_movie},
+                    query={
+                        "city": city_obj.name,
+                        "query": query or runtime.config.default_movie,
+                    },
                     data={"city": city_obj.to_dict(), "movies": results},
                 ),
                 pretty=pretty,
@@ -221,8 +238,12 @@ def movies_command(
 def shows_command(
     ctx: typer.Context,
     city: str | None = typer.Option(None, "--city", "-c"),
-    movie: str | None = typer.Option(None, "--movie", "-m", help="Movie title/alias; defaults to Doomsday"),
-    date: str | None = typer.Option(None, "--date", "-d", help="YYYY-MM-DD or earliest"),
+    movie: str | None = typer.Option(
+        None, "--movie", "-m", help="Movie title/alias; defaults to Doomsday"
+    ),
+    date: str | None = typer.Option(
+        None, "--date", "-d", help="YYYY-MM-DD or earliest"
+    ),
     platform: str = typer.Option("both", "--platform"),
     include_previews: bool = typer.Option(False, "--include-previews"),
     strict: bool = typer.Option(False, "--strict"),
@@ -282,7 +303,11 @@ def shows_command(
             if bundle.warnings:
                 print_warnings(bundle.warnings, out)
             if bundle.show_dates:
-                out.print("[dim]Selling dates: " + ", ".join(bundle.show_dates[:14]) + "[/dim]")
+                out.print(
+                    "[dim]Selling dates: "
+                    + ", ".join(bundle.show_dates[:14])
+                    + "[/dim]"
+                )
             print_shows(bundle.shows, out, date=bundle.date)
     except SeatfinderError as exc:
         _fail(exc, runtime, "shows")
@@ -293,10 +318,16 @@ def seats_command(
     ctx: typer.Context,
     city: str | None = typer.Option(None, "--city", "-c"),
     movie: str | None = typer.Option(None, "--movie", "-m"),
-    date: str | None = typer.Option(None, "--date", "-d", help="YYYY-MM-DD or earliest"),
+    date: str | None = typer.Option(
+        None, "--date", "-d", help="YYYY-MM-DD or earliest"
+    ),
     platform: str = typer.Option("both", "--platform"),
-    min_seats: int = typer.Option(1, "--min-seats", "-n", help="Seats required together"),
-    area: str | None = typer.Option(None, "--area", help="Filter by area/class substring"),
+    min_seats: int = typer.Option(
+        1, "--min-seats", "-n", help="Seats required together"
+    ),
+    area: str | None = typer.Option(
+        None, "--area", help="Filter by area/class substring"
+    ),
     include_accessible: bool = typer.Option(False, "--include-accessible"),
     limit: int = typer.Option(10, "--limit", help="Max shows to inspect"),
     all_shows: bool = typer.Option(False, "--all", help="Inspect every matching show"),
@@ -469,7 +500,9 @@ def doctor_command(
         out.print(f"cache:  {data['cache_dir']}")
         for check in checks:
             status = "[green]ok[/green]" if check.get("ok") else "[red]fail[/red]"
-            detail = check.get("detail") or (check.get("error") or {}).get("message", "")
+            detail = check.get("detail") or (check.get("error") or {}).get(
+                "message", ""
+            )
             out.print(f"{check['platform']:<9} {status} {detail}")
     if not ok:
         raise typer.Exit(EXIT_UPSTREAM)
@@ -509,9 +542,13 @@ def schema_command(
             "7": "partial result with --strict",
         },
         "commands": {
-            "cities": {"options": ["--json", "--pretty/--compact", "--no-color", "--quiet"]},
+            "cities": {
+                "options": ["--json", "--pretty/--compact", "--no-color", "--quiet"]
+            },
             "movies": {"options": ["--city", "--query", "--platform", "--json"]},
-            "shows": {"options": ["--city", "--movie", "--date", "--platform", "--json"]},
+            "shows": {
+                "options": ["--city", "--movie", "--date", "--platform", "--json"]
+            },
             "seats": {
                 "options": [
                     "--city",
@@ -551,7 +588,11 @@ def schema_command(
             "venue": {"id": "string", "name": "string", "screen": "string"},
             "starts_at": "ISO-8601 string",
             "format": "string",
-            "availability": {"status": "string", "total": "int|null", "available": "int|null"},
+            "availability": {
+                "status": "string",
+                "total": "int|null",
+                "available": "int|null",
+            },
             "best_blocks": "SeatBlock[]",
             "seat_map": "SeatMap|null",
         },
@@ -585,7 +626,9 @@ def schema_command(
 def _parse_duration(value: str) -> float:
     match = re.fullmatch(r"\s*(\d+(?:\.\d+)?)\s*([smh]?)\s*", value or "")
     if not match:
-        raise UsageError(f"Invalid duration: {value}", hint="Use values like 90s, 10m, 2h")
+        raise UsageError(
+            f"Invalid duration: {value}", hint="Use values like 90s, 10m, 2h"
+        )
     number = float(match.group(1))
     unit = match.group(2) or "s"
     return number * {"s": 1, "m": 60, "h": 3600}[unit]
@@ -604,7 +647,9 @@ def watch_command(
     limit: int = typer.Option(5, "--limit"),
     interval: str = typer.Option("120s", "--interval"),
     timeout: str = typer.Option("30m", "--timeout"),
-    ndjson: bool = typer.Option(False, "--ndjson", "--json", help="Stream newline-delimited JSON"),
+    ndjson: bool = typer.Option(
+        False, "--ndjson", "--json", help="Stream newline-delimited JSON"
+    ),
     include_previews: bool = typer.Option(False, "--include-previews"),
     no_color: bool = typer.Option(False, "--no-color"),
     quiet: bool = typer.Option(False, "--quiet"),
@@ -655,7 +700,9 @@ def watch_command(
                 )
             elif not quiet:
                 out, _ = make_console(quiet=False, no_color=no_color)
-                out.print(f"[dim]{now_iso()}[/dim] {event_type}: {data.get('message') or data}")
+                out.print(
+                    f"[dim]{now_iso()}[/dim] {event_type}: {data.get('message') or data}"
+                )
 
         while True:
             bundle = service.fetch_shows(city_obj, movie_obj, date)
@@ -690,13 +737,22 @@ def watch_command(
                 raise typer.Exit(0)
             emit("snapshot", payload)
             if time.monotonic() + interval_seconds > deadline:
-                emit("done", {"message": "timeout", "reason": "no matching seats before timeout"})
+                emit(
+                    "done",
+                    {
+                        "message": "timeout",
+                        "reason": "no matching seats before timeout",
+                    },
+                )
                 raise typer.Exit(EXIT_UPSTREAM)
             time.sleep(interval_seconds)
     except SeatfinderError as exc:
         if ndjson:
             emit_error = envelope("watch", ok=False, error=exc.to_dict())
-            print_json({"type": "error", "seq": 0, "ts": now_iso(), "data": emit_error}, pretty=False)
+            print_json(
+                {"type": "error", "seq": 0, "ts": now_iso(), "data": emit_error},
+                pretty=False,
+            )
             raise typer.Exit(exc.exit_code)
         _fail(exc, runtime, "watch")
 

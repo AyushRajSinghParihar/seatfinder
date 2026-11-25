@@ -26,7 +26,10 @@ def find_blocks(
         run: list[Seat] = []
         if not row.seats:
             continue
-        row_center = (min(seat.grid_position for seat in row.seats) + max(seat.grid_position for seat in row.seats)) / 2
+        row_center = (
+            min(seat.grid_position for seat in row.seats)
+            + max(seat.grid_position for seat in row.seats)
+        ) / 2
 
         def flush(row_order: int = row.order, center: float = row_center) -> None:
             nonlocal run
@@ -60,7 +63,9 @@ def find_blocks(
     return blocks[:limit]
 
 
-def _make_block(seats: list[Seat], total_rows: int, order: int, row_center: float) -> SeatBlock:
+def _make_block(
+    seats: list[Seat], total_rows: int, order: int, row_center: float
+) -> SeatBlock:
     row = seats[0].row
     # Lower row order is the back of the auditorium in both providers.
     positions = [seat.grid_position for seat in seats]

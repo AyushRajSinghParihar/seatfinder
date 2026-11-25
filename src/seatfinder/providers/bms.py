@@ -71,7 +71,9 @@ class BookMyShowProvider:
 
     # ---------- movie resolution ----------
 
-    def search_movies(self, city: City, query: str, *, limit: int = 10) -> list[dict[str, Any]]:
+    def search_movies(
+        self, city: City, query: str, *, limit: int = 10
+    ) -> list[dict[str, Any]]:
         url = f"{BMS_BASE}/explore/movies-{city.bms_slug}"
         html = self._get_page(url)
         wanted = _normalize(query)
@@ -148,7 +150,9 @@ class BookMyShowProvider:
                 {
                     "code": code,
                     "name": name,
-                    "slug": str(item.get("RegionSlug") or item.get("Slug") or _slugify(name)),
+                    "slug": str(
+                        item.get("RegionSlug") or item.get("Slug") or _slugify(name)
+                    ),
                     "lat": _num(item.get("Latitude") or item.get("Lat")),
                     "lng": _num(item.get("Longitude") or item.get("Long")),
                 }
@@ -159,7 +163,9 @@ class BookMyShowProvider:
 
     # ---------- showtimes ----------
 
-    def event_code_refs(self, city: City, movie: MovieRef, *, refresh: bool = False) -> list[dict[str, Any]]:
+    def event_code_refs(
+        self, city: City, movie: MovieRef, *, refresh: bool = False
+    ) -> list[dict[str, Any]]:
         movie = self.resolve_movie(city, movie)
         key = f"bms:eventcodes:{city.bms_slug}:{movie.bms_event_code}"
         if not refresh:
@@ -171,7 +177,9 @@ class BookMyShowProvider:
         try:
             url = f"{BMS_BASE}/movies/{city.bms_slug}/{movie.bms_slug}/{movie.bms_event_code}"
             state = _extract_initial_state(self._get_page(url))
-            for query in (state.get("synopsisMoviesApi") or {}).get("queries", {}).values():
+            for query in (
+                (state.get("synopsisMoviesApi") or {}).get("queries", {}).values()
+            ):
                 data = query.get("data") or {}
                 if not isinstance(data, dict):
                     continue
@@ -190,7 +198,9 @@ class BookMyShowProvider:
         except SeatfinderError:
             pass
         if movie.bms_event_code and movie.bms_event_code not in seen:
-            refs.insert(0, {"code": movie.bms_event_code, "language": "", "dimension": ""})
+            refs.insert(
+                0, {"code": movie.bms_event_code, "language": "", "dimension": ""}
+            )
             seen.add(movie.bms_event_code)
         if not refs and movie.bms_event_code:
             refs = [{"code": movie.bms_event_code, "language": "", "dimension": ""}]
@@ -329,7 +339,9 @@ class BookMyShowProvider:
         try:
             payload = response.json()
         except UpstreamError as exc:
-            raise SchemaError("BookMyShow seat response was not JSON", detail=str(exc)) from exc
+            raise SchemaError(
+                "BookMyShow seat response was not JSON", detail=str(exc)
+            ) from exc
         envelope = payload.get("BookMyShow") or payload.get("bookmyshow") or {}
         if str(envelope.get("blnSuccess")).lower() != "true":
             raise SchemaError(
@@ -346,7 +358,9 @@ class BookMyShowProvider:
         try:
             area_section, row_section = layout.split("||", 1)
         except ValueError as exc:
-            raise SchemaError("BookMyShow seat layout has an unknown shape", detail=layout[:200]) from exc
+            raise SchemaError(
+                "BookMyShow seat layout has an unknown shape", detail=layout[:200]
+            ) from exc
 
         areas: dict[str, SeatArea] = {}
         for raw_area in filter(None, area_section.split("|")):
@@ -367,7 +381,10 @@ class BookMyShowProvider:
             if item.get("code")
         }
         for area in areas.values():
-            if area.code in show_price_by_code and show_price_by_code[area.code] is not None:
+            if (
+                area.code in show_price_by_code
+                and show_price_by_code[area.code] is not None
+            ):
                 area.price = _num(show_price_by_code[area.code])
             if show_name_by_code.get(area.code):
                 area.name = str(show_name_by_code[area.code])
@@ -389,12 +406,18 @@ class BookMyShowProvider:
                 parts = raw_seat.split("+")
                 token = parts[0]
                 if len(token) < 2 or not token[1].isdigit():
-                    raise SchemaError("BookMyShow seat token is malformed", detail=raw_seat)
+                    raise SchemaError(
+                        "BookMyShow seat token is malformed", detail=raw_seat
+                    )
                 area_id = token[0]
                 status_code = int(token[1])
                 if status_code == 0:
                     continue
-                number = parts[1] if len(parts) > 1 and parts[1] not in {"0", "00"} else token[2:]
+                number = (
+                    parts[1]
+                    if len(parts) > 1 and parts[1] not in {"0", "00"}
+                    else token[2:]
+                )
                 number = number.lstrip("0") or token[2:].lstrip("0")
                 area = areas.get(area_id)
                 seats.append(
@@ -435,7 +458,10 @@ class BookMyShowProvider:
     def _get_page(self, url: str) -> str:
         response = self.client.get(
             url,
-            headers={"Accept": "text/html,application/xhtml+xml", "Accept-Language": "en-IN,en;q=0.9"},
+            headers={
+                "Accept": "text/html,application/xhtml+xml",
+                "Accept-Language": "en-IN,en;q=0.9",
+            },
             max_attempts=4,
             rotate_on=(403, 429),
             backoff=2.0,
@@ -509,9 +535,11 @@ def _extract_shows_from_state(
         date_data = old_dates.get(date_code)
         if isinstance(date_data, dict):
             static_venues = (
-                ((date_data.get("primaryStatic") or {}).get("data") or {}).get("venues") or {}
-            )
-            widgets = ((date_data.get("dynamic") or {}).get("data") or {}).get("showtimeWidgets") or []
+                (date_data.get("primaryStatic") or {}).get("data") or {}
+            ).get("venues") or {}
+            widgets = ((date_data.get("dynamic") or {}).get("data") or {}).get(
+                "showtimeWidgets"
+            ) or []
             for card in _iter_venue_cards(widgets):
                 shows.extend(
                     _shows_from_card(
@@ -600,8 +628,14 @@ def _shows_from_card(
             continue
         seen.add(f"{venue_code}:{session_id}")
         categories = _categories_for_show(raw_show)
-        prices = [category["price"] for category in categories if category.get("price") is not None]
-        format_value, language_value = _format_for_show(raw_show, format_hint, language_hint)
+        prices = [
+            category["price"]
+            for category in categories
+            if category.get("price") is not None
+        ]
+        format_value, language_value = _format_for_show(
+            raw_show, format_hint, language_hint
+        )
         avail_status = _int(data.get("availStatus"))
         status = STATUS_MAP.get(avail_status, UNKNOWN)
         if status == UNKNOWN and categories:
@@ -652,9 +686,13 @@ def _shows_from_card(
                     "date": show_date,
                     "city_slug": city.bms_slug,
                     "movie_slug": movie.bms_slug,
-                    "venue_lat": venue.get("venueLatitude") or venue.get("VenueLatitude"),
-                    "venue_lng": venue.get("venueLongitude") or venue.get("VenueLongitude"),
-                    "address": venue.get("venueAddress") or venue.get("VenueAddress") or "",
+                    "venue_lat": venue.get("venueLatitude")
+                    or venue.get("VenueLatitude"),
+                    "venue_lng": venue.get("venueLongitude")
+                    or venue.get("VenueLongitude"),
+                    "address": venue.get("venueAddress")
+                    or venue.get("VenueAddress")
+                    or "",
                 },
             )
         )
@@ -760,7 +798,9 @@ def _walk_format_dicts(value: Any) -> Iterable[dict[str, Any]]:
             yield from _walk_format_dicts(child)
 
 
-def _match_show_area(area_name: str, area_counts: list[dict[str, Any]]) -> dict[str, Any] | None:
+def _match_show_area(
+    area_name: str, area_counts: list[dict[str, Any]]
+) -> dict[str, Any] | None:
     wanted = _normalize(area_name)
     if not wanted:
         return None
@@ -779,7 +819,12 @@ def _match_show_area(area_name: str, area_counts: list[dict[str, Any]]) -> dict[
     ]
     if not candidates:
         return None
-    return min(candidates, key=lambda item: abs(len(_normalize(str(item.get("label") or ""))) - len(wanted)))
+    return min(
+        candidates,
+        key=lambda item: abs(
+            len(_normalize(str(item.get("label") or ""))) - len(wanted)
+        ),
+    )
 
 
 def _extract_initial_state(html: str) -> dict[str, Any]:
@@ -790,9 +835,11 @@ def _extract_initial_state(html: str) -> dict[str, Any]:
             hint="The page may be a bot interstitial or the site changed",
         )
     try:
-        payload, _ = json.JSONDecoder().raw_decode(html[match.end():])
+        payload, _ = json.JSONDecoder().raw_decode(html[match.end() :])
     except json.JSONDecodeError as exc:
-        raise SchemaError("BookMyShow initial state is invalid JSON", detail=str(exc)) from exc
+        raise SchemaError(
+            "BookMyShow initial state is invalid JSON", detail=str(exc)
+        ) from exc
     if not isinstance(payload, dict):
         raise SchemaError("BookMyShow initial state is not an object")
     return payload
@@ -823,7 +870,9 @@ def _walk_items(value: Any) -> Iterable[dict[str, Any]]:
 
 def _walk_region_dicts(value: Any) -> Iterable[dict[str, Any]]:
     if isinstance(value, dict):
-        if "RegionCode" in value and ("RegionName" in value or "RegionNameDisplay" in value):
+        if "RegionCode" in value and (
+            "RegionName" in value or "RegionNameDisplay" in value
+        ):
             yield value
         for child in value.values():
             yield from _walk_region_dicts(child)
@@ -832,14 +881,22 @@ def _walk_region_dicts(value: Any) -> Iterable[dict[str, Any]]:
             yield from _walk_region_dicts(child)
 
 
-def _bms_start_time(show_date: str, data: dict[str, Any], raw_show: dict[str, Any]) -> str:
+def _bms_start_time(
+    show_date: str, data: dict[str, Any], raw_show: dict[str, Any]
+) -> str:
     compact = str(data.get("showDateTime") or raw_show.get("showDateTime") or "")
     if re.fullmatch(r"\d{12}", compact):
         try:
-            return datetime.strptime(compact, "%Y%m%d%H%M").replace(tzinfo=IST).isoformat(timespec="minutes")
+            return (
+                datetime.strptime(compact, "%Y%m%d%H%M")
+                .replace(tzinfo=IST)
+                .isoformat(timespec="minutes")
+            )
         except ValueError:
             pass
-    display = str(data.get("showTime") or raw_show.get("title") or raw_show.get("showTime") or "")
+    display = str(
+        data.get("showTime") or raw_show.get("title") or raw_show.get("showTime") or ""
+    )
     for fmt in ("%I:%M %p", "%I:%M%p", "%H:%M"):
         try:
             parsed = datetime.strptime(display.strip().upper(), fmt)

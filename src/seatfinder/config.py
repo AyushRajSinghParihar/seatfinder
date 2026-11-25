@@ -44,7 +44,9 @@ class Config:
     default_platform: str = "both"
     timeout: float = 30.0
     proxy: str | None = None
-    bms_tls_profiles: list[str] = field(default_factory=lambda: list(DEFAULT_BMS_PROFILES))
+    bms_tls_profiles: list[str] = field(
+        default_factory=lambda: list(DEFAULT_BMS_PROFILES)
+    )
     bms_seat_key: bytes = DEFAULT_BMS_SEAT_KEY
     district_cookie: str | None = None
     cache_ttl: int = 300
@@ -79,7 +81,9 @@ class Config:
         cfg.district_cookie = _env("DISTRICT_COOKIE", cfg.district_cookie)
         profiles = _env("BMS_TLS_PROFILES")
         if profiles:
-            cfg.bms_tls_profiles = [p.strip() for p in str(profiles).split(",") if p.strip()]
+            cfg.bms_tls_profiles = [
+                p.strip() for p in str(profiles).split(",") if p.strip()
+            ]
         key = _env("BMS_SEAT_KEY")
         if key:
             cfg.bms_seat_key = str(key).encode("utf-8")

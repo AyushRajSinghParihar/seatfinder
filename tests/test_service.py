@@ -45,7 +45,8 @@ def _show(platform, show_id, starts_at):
 def test_both_platform_limit_includes_both_providers():
     service = SeatService(Config(), platform="both")
     shows = [
-        _show("bms", f"bms-{index}", f"2026-12-17T{index:02d}:00+05:30") for index in range(10)
+        _show("bms", f"bms-{index}", f"2026-12-17T{index:02d}:00+05:30")
+        for index in range(10)
     ] + [
         _show("district", f"district-{index}", f"2026-12-17T{index:02d}:00+05:30")
         for index in range(10)
@@ -60,7 +61,9 @@ def test_unknown_city_falls_back_to_bms_regions(monkeypatch):
     monkeypatch.setattr(
         service.providers["bms"],
         "regions",
-        lambda: [{"name": "Kota", "slug": "kota", "code": "KOTA", "lat": 25.1, "lng": 75.8}],
+        lambda: [
+            {"name": "Kota", "slug": "kota", "code": "KOTA", "lat": 25.1, "lng": 75.8}
+        ],
     )
     city, _ = service.resolve("Kota", None)
     assert city.name == "Kota"

@@ -49,7 +49,9 @@ def test_parses_movie_response(monkeypatch, tmp_path):
     provider = _provider(tmp_path)
 
     def fake_get(*args, **kwargs):
-        return HttpResponse(status_code=200, text=payload, headers={}, url="https://example.test")
+        return HttpResponse(
+            status_code=200, text=payload, headers={}, url="https://example.test"
+        )
 
     monkeypatch.setattr(provider.client, "get", fake_get)
     result = provider.fetch_shows(_city(), _movie(), "2026-12-17")
@@ -68,7 +70,9 @@ def test_204_is_reported_as_not_open(monkeypatch, tmp_path):
     provider = _provider(tmp_path)
 
     def fake_get(*args, **kwargs):
-        return HttpResponse(status_code=204, text="", headers={}, url="https://example.test")
+        return HttpResponse(
+            status_code=204, text="", headers={}, url="https://example.test"
+        )
 
     monkeypatch.setattr(provider.client, "get", fake_get)
     result = provider.fetch_shows(_city(), _movie(), "2026-12-17")
@@ -81,10 +85,17 @@ def test_parses_seat_layout_and_accessible_status(monkeypatch, tmp_path):
     provider = _provider(tmp_path)
 
     def fake_get(*args, **kwargs):
-        return HttpResponse(status_code=200, text="<html></html>", headers={}, url="https://example.test")
+        return HttpResponse(
+            status_code=200,
+            text="<html></html>",
+            headers={},
+            url="https://example.test",
+        )
 
     def fake_post(*args, **kwargs):
-        return HttpResponse(status_code=200, text=payload, headers={}, url="https://example.test")
+        return HttpResponse(
+            status_code=200, text=payload, headers={}, url="https://example.test"
+        )
 
     monkeypatch.setattr(provider.client, "get", fake_get)
     monkeypatch.setattr(provider.client, "post_json", fake_post)

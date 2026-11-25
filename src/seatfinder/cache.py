@@ -48,7 +48,9 @@ class JsonCache:
         )
         temp.replace(path)
 
-    def get_or_set(self, key: str, producer: Callable[[], Any], *, ttl: int | None = None) -> Any:
+    def get_or_set(
+        self, key: str, producer: Callable[[], Any], *, ttl: int | None = None
+    ) -> Any:
         cached = self.get(key)
         if cached is not None:
             return cached

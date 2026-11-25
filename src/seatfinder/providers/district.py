@@ -102,7 +102,9 @@ class DistrictProvider:
 
     # ---------- movie resolution ----------
 
-    def search_movies(self, city: City, query: str, *, limit: int = 10) -> list[dict[str, Any]]:
+    def search_movies(
+        self, city: City, query: str, *, limit: int = 10
+    ) -> list[dict[str, Any]]:
         body = {
             "get_search_results_request_type": 1,
             "post_body": {"hp_selected_tab_id": "movies"},
@@ -121,7 +123,9 @@ class DistrictProvider:
         try:
             payload = response.json()
         except UpstreamError as exc:
-            raise SchemaError("District search returned non-JSON", detail=str(exc)) from exc
+            raise SchemaError(
+                "District search returned non-JSON", detail=str(exc)
+            ) from exc
         results = payload.get("results")
         if results is None:
             raise SchemaError(
@@ -138,7 +142,9 @@ class DistrictProvider:
             if not content_id:
                 continue
             title = str(item.get("display_title") or "").strip()
-            slug = _slug_for_movie(title, meta.get("web_deeplink") or meta.get("deeplink"))
+            slug = _slug_for_movie(
+                title, meta.get("web_deeplink") or meta.get("deeplink")
+            )
             url = meta.get("web_deeplink") or meta.get("deeplink")
             if not url:
                 url = f"{self.base_url}/movies/{slug}-movie-tickets-MV{content_id}"
@@ -233,7 +239,11 @@ class DistrictProvider:
             except UpstreamError:
                 body = {}
             code = body.get("code")
-            message = body.get("message") or body.get("msg") or "District rejected the request"
+            message = (
+                body.get("message")
+                or body.get("msg")
+                or "District rejected the request"
+            )
             if code == 32:
                 return ProviderResult(
                     warnings=[
@@ -244,9 +254,14 @@ class DistrictProvider:
                         )
                     ]
                 )
-            raise UpstreamError(f"District rejected the request: {message}", detail=str(body)[:300])
+            raise UpstreamError(
+                f"District rejected the request: {message}", detail=str(body)[:300]
+            )
         if response.status_code == 403:
-            raise BlockedError("District blocked the request", hint="Try a residential connection or --proxy")
+            raise BlockedError(
+                "District blocked the request",
+                hint="Try a residential connection or --proxy",
+            )
 
         payload = response.json()
         page = payload.get("pageData")
@@ -260,13 +275,17 @@ class DistrictProvider:
 
         shows: list[Show] = []
         warnings: list[Warning] = []
-        cinemas = list(page.get("nearbyCinemas") or []) + list(page.get("farCinemas") or [])
+        cinemas = list(page.get("nearbyCinemas") or []) + list(
+            page.get("farCinemas") or []
+        )
         for cinema in cinemas:
             info = cinema.get("cinemaInfo") or {}
             cinema_id = str(cinema.get("id") or info.get("id") or "")
             venue_name = info.get("label") or info.get("name") or f"Cinema {cinema_id}"
             default_provider_id = str(info.get("providerId") or "")
-            sessions = list(cinema.get("sessions") or []) + list(cinema.get("extraSessions") or [])
+            sessions = list(cinema.get("sessions") or []) + list(
+                cinema.get("extraSessions") or []
+            )
             seen: set[str] = set()
             for session in sessions:
                 sid = str(session.get("sid") or "")
@@ -292,7 +311,11 @@ class DistrictProvider:
                 prices = [a["price"] for a in area_counts if a["price"] is not None]
                 avail = _int(session.get("avail"))
                 total = _int(session.get("total"))
-                status = "sold_out" if avail == 0 else ("available" if (avail or 0) > 0 else UNKNOWN)
+                status = (
+                    "sold_out"
+                    if avail == 0
+                    else ("available" if (avail or 0) > 0 else UNKNOWN)
+                )
                 tags = [str(t) for t in session.get("tags") or []]
                 provider_id = str(session.get("pid") or default_provider_id or "")
                 shows.append(
@@ -356,7 +379,10 @@ class DistrictProvider:
             try:
                 response = self.client.get(
                     url,
-                    headers={"User-Agent": MOBILE_UA, "Accept": "text/html,application/xhtml+xml"},
+                    headers={
+                        "User-Agent": MOBILE_UA,
+                        "Accept": "text/html,application/xhtml+xml",
+                    },
                     max_attempts=1,
                     rotate_on=(),
                     allow_statuses=(404,),
@@ -395,7 +421,9 @@ class DistrictProvider:
             allow_statuses=(401,),
         )
         if response.status_code == 401:
-            self._warmed.discard(f"{city.district_city_key}:{movie.district_content_id}")
+            self._warmed.discard(
+                f"{city.district_city_key}:{movie.district_content_id}"
+            )
             self._warm(city, movie)
             response = self.client.post_json(
                 url,
@@ -407,7 +435,10 @@ class DistrictProvider:
                 allow_statuses=(401,),
             )
         if response.status_code == 403:
-            raise BlockedError("District blocked the seat map request", hint="Try a residential connection or --proxy")
+            raise BlockedError(
+                "District blocked the seat map request",
+                hint="Try a residential connection or --proxy",
+            )
         if response.status_code == 401:
             raise AuthError(
                 "District seat map needs a browser session",
@@ -424,8 +455,10 @@ class DistrictProvider:
             )
         return self._parse_layout(show, layout, payload)
 
-    def _parse_layout(self, show: Show, layout: dict[str, Any], payload: dict[str, Any]) -> SeatMap:
-        areas_raw = (((layout.get("colAreas") or {}).get("objArea")) or [])
+    def _parse_layout(
+        self, show: Show, layout: dict[str, Any], payload: dict[str, Any]
+    ) -> SeatMap:
+        areas_raw = ((layout.get("colAreas") or {}).get("objArea")) or []
         if isinstance(areas_raw, dict):
             areas_raw = [areas_raw]
         prices = {
@@ -458,7 +491,9 @@ class DistrictProvider:
                 area_price = prices.get(area_code)
             areas.append(SeatArea(code=area_code, name=area_name, price=area_price))
             for raw_row in area.get("objRow") or []:
-                row_label = str(raw_row.get("PhyRowId") or raw_row.get("GridRowId") or "")
+                row_label = str(
+                    raw_row.get("PhyRowId") or raw_row.get("GridRowId") or ""
+                )
                 row_order = _int(raw_row.get("GridRowId")) or 0
                 seats: list[Seat] = []
                 for raw_seat in raw_row.get("objSeat") or []:
@@ -471,7 +506,9 @@ class DistrictProvider:
                         or ""
                     )
                     grid = _int(raw_seat.get("GridSeatNum")) or 0
-                    seat_type = str(raw_seat.get("type") or raw_seat.get("seatType") or "")
+                    seat_type = str(
+                        raw_seat.get("type") or raw_seat.get("seatType") or ""
+                    )
                     is_best = str(raw_seat.get("highlightSeat") or "") == "bestSeat"
                     seats.append(
                         Seat(

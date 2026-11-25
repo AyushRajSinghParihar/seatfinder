@@ -42,11 +42,15 @@ def _seat_url(*args, **kwargs):
 
 def test_movie_slug_is_read_from_city_first_urls():
     assert (
-        _movie_slug_from_url("https://in.bookmyshow.com/delhi/movies/avengers-doomsday/ET00439706")
+        _movie_slug_from_url(
+            "https://in.bookmyshow.com/delhi/movies/avengers-doomsday/ET00439706"
+        )
         == "avengers-doomsday"
     )
     assert (
-        _movie_slug_from_url("https://in.bookmyshow.com/movies/delhi/avengers-doomsday/ET00439706")
+        _movie_slug_from_url(
+            "https://in.bookmyshow.com/movies/delhi/avengers-doomsday/ET00439706"
+        )
         == "avengers-doomsday"
     )
 
@@ -105,7 +109,9 @@ def test_decodes_and_parses_encrypted_layout():
     )
     padder = padding.PKCS7(128).padder()
     padded = padder.update(plaintext.encode()) + padder.finalize()
-    encryptor = Cipher(algorithms.AES(DEFAULT_BMS_SEAT_KEY), modes.CBC(bytes(16))).encryptor()
+    encryptor = Cipher(
+        algorithms.AES(DEFAULT_BMS_SEAT_KEY), modes.CBC(bytes(16))
+    ).encryptor()
     encoded = base64.b64encode(encryptor.update(padded) + encryptor.finalize()).decode()
     assert decode_bms_seat_layout(encoded, DEFAULT_BMS_SEAT_KEY) == plaintext
 
