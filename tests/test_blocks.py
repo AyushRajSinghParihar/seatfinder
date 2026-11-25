@@ -117,3 +117,39 @@ def test_accessible_only_counts_when_requested():
     assert find_blocks(seat_map, min_seats=3) == []
     blocks = find_blocks(seat_map, min_seats=3, include_accessible=True)
     assert blocks[0].seats == ["1", "2", "3"]
+
+
+def _stacked_rows(count=10):
+    rows = []
+    for order in range(1, count + 1):
+        label = chr(64 + order)
+        rows.append(
+            SeatRow(
+                label=label,
+                order=order,
+                seats=[_seat(label, 5, 5), _seat(label, 6, 6)],
+            )
+        )
+    return _map(rows)
+
+
+def test_center_preference_picks_slightly_behind_the_middle():
+    blocks = find_blocks(_stacked_rows(), min_seats=2, prefer="center")
+    assert blocks[0].row == "D"
+
+
+def test_back_preference_picks_back_rows():
+    blocks = find_blocks(_stacked_rows(), min_seats=2, prefer="back")
+    assert blocks[0].row == "A"
+
+
+def test_front_preference_picks_front_rows():
+    blocks = find_blocks(_stacked_rows(), min_seats=2, prefer="front")
+    assert blocks[0].row in {"I", "J"}
+
+
+def test_invalid_preference_is_rejected():
+    import pytest
+
+    with pytest.raises(ValueError):
+        find_blocks(_stacked_rows(), prefer="aisle")

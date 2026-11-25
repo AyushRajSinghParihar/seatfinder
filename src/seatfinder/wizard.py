@@ -8,7 +8,12 @@ import typer
 from rich.console import Console
 
 from .config import Config
-from .output import print_seat_results, print_shows, print_warnings
+from .output import (
+    fetch_seats_with_progress,
+    print_seat_results,
+    print_shows,
+    print_warnings,
+)
 from .service import SeatService
 
 
@@ -25,6 +30,7 @@ def run_wizard(
     quiet: bool = False,
 ) -> None:
     console = Console(no_color=no_color, quiet=quiet, highlight=False)
+    err = Console(stderr=True, no_color=no_color, quiet=quiet, highlight=False)
     catalog_service = SeatService(
         config,
         platform="both",
@@ -97,6 +103,17 @@ def run_wizard(
         return
 
     min_seats = typer.prompt("Minimum seats together", default=1, type=int)
+    prefer = (
+        typer.prompt(
+            "Where do you want to sit? (center/back/front/any)",
+            default="center",
+            show_default=True,
+        )
+        .strip()
+        .lower()
+    )
+    if prefer not in {"center", "back", "front", "any"}:
+        prefer = "center"
     choice = (
         typer.prompt(
             "Inspect which shows? (top/all/number)",
@@ -114,10 +131,13 @@ def run_wizard(
         if 1 <= index <= len(bundle.shows):
             bundle.shows = [bundle.shows[index - 1]]
         limit = None
-    console.print("Fetching seat maps…")
-    results = service.fetch_seats(
+    results = fetch_seats_with_progress(
+        service,
         bundle,
+        err,
+        enabled=not quiet,
         min_seats=min_seats,
+        prefer=prefer,
         limit=limit,
         detail="summary",
     )

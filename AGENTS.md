@@ -5,7 +5,7 @@ Use `seatfinder` in non-interactive mode. Never rely on prompts.
 ## Canonical commands
 
 ```bash
-seatfinder seats --city <city> --movie doomsday --date earliest --min-seats 2 --json
+seatfinder seats --city <city> --movie doomsday --date earliest --min-seats 2 --prefer center --json
 seatfinder shows --city <city> --movie doomsday --date YYYY-MM-DD --json
 seatfinder movies --city <city> --query "<title>" --json
 seatfinder cities --json
@@ -21,6 +21,9 @@ seatfinder doctor --live --json
 - Seat statuses: `available`, `accessible`, `booked`, `held`, `unknown`.
 - `best_blocks[]` contains contiguous free seats; `block_found` says whether
   `--min-seats` was satisfied.
+- `--prefer center|back|front|any` controls the seat-area score; default is
+  `center`, slightly behind the middle.
+- Progress is written to `stderr`; `stdout` stays clean.
 - `--detail full` adds `seat_map.rows`; omit it to keep output small.
 - Exit codes: 0 success, 2 usage, 4 upstream/blocked/timeout, 5 schema drift,
   6 auth/cookies, 7 partial with `--strict`.

@@ -3,8 +3,16 @@ import pytest
 from seatfinder.catalog import Catalog
 from seatfinder.config import Config
 from seatfinder.errors import UsageError
-from seatfinder.models import Show
-from seatfinder.service import SeatService
+from seatfinder.models import (
+    AVAILABLE,
+    City,
+    Seat,
+    SeatArea,
+    SeatMap,
+    SeatRow,
+    Show,
+)
+from seatfinder.service import SeatService, ShowBundle
 
 
 def test_platform_validation():
@@ -69,3 +77,51 @@ def test_unknown_city_falls_back_to_bms_regions(monkeypatch):
     assert city.name == "Kota"
     assert city.bms_region == "KOTA"
     assert city.lat == 25.1
+
+
+def test_seat_progress_callback_reports_each_show():
+    service = SeatService(Config(), platform="district")
+    city = City(
+        name="Delhi",
+        bms_slug="delhi",
+        district_city_key="new-delhi",
+        lat=28.6,
+        lng=77.2,
+    )
+    movie = Catalog().resolve_movie("doomsday")
+    show = _show("district", "district-1", "2026-12-17T21:00+05:30")
+    seat_map = SeatMap(
+        platform="district",
+        show_id=show.show_id,
+        fetched_at="2026-01-01T00:00:00+05:30",
+        areas=[SeatArea(code="A", name="PREMIUM", price=500)],
+        rows=[
+            SeatRow(
+                label="A",
+                order=1,
+                seats=[
+                    Seat(
+                        row="A",
+                        number="1",
+                        grid_position=1,
+                        status=AVAILABLE,
+                        area_code="A",
+                        area_name="PREMIUM",
+                        price=500,
+                    )
+                ],
+            )
+        ],
+    )
+    service.providers["district"].fetch_seat_map = lambda *args: seat_map
+    calls = []
+    bundle = ShowBundle(city=city, movie=movie, date="2026-12-17", shows=[show])
+    results = service.fetch_seats(
+        bundle,
+        on_progress=lambda index, total, current: calls.append(
+            (index, total, current.show_id)
+        ),
+        prefer="center",
+    )
+    assert calls == [(1, 1, show.show_id)]
+    assert results[0]["block_found"] is True

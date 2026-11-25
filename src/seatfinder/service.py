@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date as date_cls
 from datetime import datetime, timedelta, timezone
@@ -279,18 +280,25 @@ class SeatService:
         min_seats: int = 1,
         area: str | None = None,
         include_accessible: bool = False,
+        prefer: str = "center",
         limit: int | None = 10,
         detail: str = "summary",
+        on_progress: Callable[[int, int, Show], None] | None = None,
     ) -> list[dict]:
         if detail not in {"summary", "full", "none"}:
             raise UsageError("detail must be one of: summary, full, none")
         if min_seats < 1:
             raise UsageError("min_seats must be at least 1")
+        if prefer not in {"center", "back", "front", "any"}:
+            raise UsageError("prefer must be one of: center, back, front, any")
         if limit is not None and limit < 1:
             raise UsageError("limit must be at least 1, or use --all")
         shows = self._select_shows(bundle.shows, limit)
         output: list[dict] = []
+        total = len(shows)
         for index, show in enumerate(shows):
+            if on_progress:
+                on_progress(index + 1, total, show)
             if index:
                 time.sleep(random.uniform(0.8, 1.6))
             provider = self.providers[show.platform]
@@ -304,6 +312,7 @@ class SeatService:
                     min_seats=min_seats,
                     area=area,
                     include_accessible=include_accessible,
+                    prefer=prefer,
                     limit=5,
                 )
                 item["best_blocks"] = [block.to_dict() for block in blocks]

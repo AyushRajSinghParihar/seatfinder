@@ -19,6 +19,7 @@ from .errors import (
 )
 from .jsonutil import envelope, now_iso
 from .output import (
+    fetch_seats_with_progress,
     make_console,
     print_cities,
     print_json,
@@ -329,6 +330,11 @@ def seats_command(
         None, "--area", help="Filter by area/class substring"
     ),
     include_accessible: bool = typer.Option(False, "--include-accessible"),
+    prefer: str = typer.Option(
+        "center",
+        "--prefer",
+        help="Seat area preference: center (slightly back), back, front, any",
+    ),
     limit: int = typer.Option(10, "--limit", help="Max shows to inspect"),
     all_shows: bool = typer.Option(False, "--all", help="Inspect every matching show"),
     detail: str = typer.Option("summary", "--detail", help="summary|full|none"),
@@ -371,17 +377,30 @@ def seats_command(
             raise UsageError("limit must be at least 1, or use --all")
         if detail not in {"summary", "full", "none"}:
             raise UsageError("detail must be one of: summary, full, none")
+        if prefer not in {"center", "back", "front", "any"}:
+            raise UsageError("prefer must be one of: center, back, front, any")
         city_obj, movie_obj = service.resolve(city, movie)
         bundle = service.fetch_shows(city_obj, movie_obj, date)
         _strict_check(bundle, runtime, "seats")
-        results = service.fetch_seats(
-            bundle,
-            min_seats=min_seats,
-            area=area,
-            include_accessible=include_accessible,
-            limit=None if all_shows else limit,
-            detail="full" if show_map and detail == "summary" else detail,
-        )
+        seat_kwargs = {
+            "min_seats": min_seats,
+            "area": area,
+            "include_accessible": include_accessible,
+            "prefer": prefer,
+            "limit": None if all_shows else limit,
+            "detail": "full" if show_map and detail == "summary" else detail,
+        }
+        if json_output:
+            results = service.fetch_seats(bundle, **seat_kwargs)
+        else:
+            _, err = make_console(quiet=quiet, no_color=no_color)
+            results = fetch_seats_with_progress(
+                service,
+                bundle,
+                err,
+                enabled=not quiet,
+                **seat_kwargs,
+            )
         if json_output:
             data = bundle.to_dict()
             data["shows"] = results
@@ -397,6 +416,7 @@ def seats_command(
                         "min_seats": min_seats,
                         "area": area,
                         "include_accessible": include_accessible,
+                        "prefer": prefer,
                     },
                     data=data,
                     warnings=[w.to_dict() for w in bundle.warnings],
@@ -407,6 +427,7 @@ def seats_command(
             out, _ = make_console(quiet=quiet, no_color=no_color)
             out.print(
                 f"[bold]{bundle.movie.title}[/bold] · {bundle.city.name} · {bundle.date} · {platform}"
+                f" · prefer {prefer}"
             )
             if bundle.warnings:
                 print_warnings(bundle.warnings, out)
@@ -558,6 +579,7 @@ def schema_command(
                     "--min-seats",
                     "--area",
                     "--include-accessible",
+                    "--prefer",
                     "--limit",
                     "--all",
                     "--detail",
@@ -572,6 +594,7 @@ def schema_command(
                     "--date",
                     "--platform",
                     "--min-seats",
+                    "--prefer",
                     "--interval",
                     "--timeout",
                     "--ndjson",
@@ -644,6 +667,7 @@ def watch_command(
     min_seats: int = typer.Option(1, "--min-seats", "-n"),
     area: str | None = typer.Option(None, "--area"),
     include_accessible: bool = typer.Option(False, "--include-accessible"),
+    prefer: str = typer.Option("center", "--prefer"),
     limit: int = typer.Option(5, "--limit"),
     interval: str = typer.Option("120s", "--interval"),
     timeout: str = typer.Option("30m", "--timeout"),
@@ -681,6 +705,8 @@ def watch_command(
             raise UsageError("interval must be at least 1s", hint="Use --interval 120s")
         if timeout_seconds < 1:
             raise UsageError("timeout must be at least 1s", hint="Use --timeout 30m")
+        if prefer not in {"center", "back", "front", "any"}:
+            raise UsageError("prefer must be one of: center, back, front, any")
         deadline = time.monotonic() + timeout_seconds
         city_obj, movie_obj = service.resolve(city, movie)
         seq = 0
@@ -711,6 +737,7 @@ def watch_command(
                 min_seats=min_seats,
                 area=area,
                 include_accessible=include_accessible,
+                prefer=prefer,
                 limit=limit,
                 detail="summary",
             )
@@ -720,6 +747,7 @@ def watch_command(
                 "movie": movie_obj.title,
                 "date": bundle.date,
                 "show_count": len(bundle.shows),
+                "prefer": prefer,
                 "matches": [
                     {
                         "show_id": item["show_id"],

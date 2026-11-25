@@ -22,7 +22,11 @@ never books, holds seats, logs in, or stores account data.
 - Non-interactive `--json` mode with a stable schema, stable show IDs, typed
   warnings, and documented exit codes.
 - Contiguous block finder: `--min-seats 4`, seat-class filtering, accessible
-  seats, and back/centre scoring.
+  seats, and seat-area preference.
+- Default preference is **centre, slightly behind the middle**; choose
+  `center`, `back`, `front`, or `any`.
+- Live progress while seat maps are fetched (stderr; suppressed with `--json`
+  or `--quiet`).
 - `watch` mode streams NDJSON snapshots and matches until seats appear.
 - City fallback: unknown cities are resolved from BookMyShow's live region
   directory.
@@ -134,6 +138,7 @@ Common flags:
 | `--min-seats N` | Require N contiguous seats |
 | `--area "PREMIUM"` | Filter by seat class |
 | `--include-accessible` | Count wheelchair/companion seats in blocks |
+| `--prefer center\|back\|front\|any` | Seat-area preference (default `center`, slightly behind the middle) |
 | `--detail summary\|full\|none` | Seat-map payload size |
 | `--map` | Render a compact terminal seat map |
 | `--limit N` / `--all` | Control how many shows get a seat-map request |
@@ -242,6 +247,19 @@ Environment overrides:
 `SEATFINDER_CITY`, `SEATFINDER_MOVIE`, `SEATFINDER_PLATFORM`,
 `SEATFINDER_TIMEOUT`, `SEATFINDER_PROXY`, `SEATFINDER_BMS_SEAT_KEY`,
 `SEATFINDER_DISTRICT_COOKIE`.
+
+## Seat scoring
+
+Seats are scored with simple geometry, not hardcoded rows:
+
+- Row depth is normalised from front (`0`) to back (`1`).
+- `center` targets depth `0.62`, i.e. centre and a little higher than the
+  middle; `back` targets `0.95`; `front` targets `0.12`; `any` skips row bias.
+- Distance from the row's horizontal centre breaks ties.
+- Only contiguous seats count, and aisle gaps are respected.
+
+The winning blocks look like “row E, seats 1–3” instead of a single arbitrary
+empty seat.
 
 ## How it works
 

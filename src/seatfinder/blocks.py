@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from .models import ACCESSIBLE, AVAILABLE, Seat, SeatBlock, SeatMap
 
+PREFERENCE_TARGETS = {
+    "front": 0.12,
+    "center": 0.62,
+    "back": 0.95,
+}
+
 
 def find_blocks(
     seat_map: SeatMap,
@@ -11,10 +17,13 @@ def find_blocks(
     min_seats: int = 1,
     area: str | None = None,
     include_accessible: bool = False,
+    prefer: str = "center",
     limit: int = 5,
 ) -> list[SeatBlock]:
     if min_seats < 1:
         raise ValueError("min_seats must be at least 1")
+    if prefer not in {"center", "back", "front", "any"}:
+        raise ValueError("prefer must be one of: center, back, front, any")
     allowed_statuses = {AVAILABLE}
     if include_accessible:
         allowed_statuses.add(ACCESSIBLE)
@@ -26,15 +35,21 @@ def find_blocks(
         run: list[Seat] = []
         if not row.seats:
             continue
-        row_center = (
-            min(seat.grid_position for seat in row.seats)
-            + max(seat.grid_position for seat in row.seats)
-        ) / 2
+        low = min(seat.grid_position for seat in row.seats)
+        high = max(seat.grid_position for seat in row.seats)
+        row_center = (low + high) / 2
+        row_span = max(high - low + 1, 1)
 
-        def flush(row_order: int = row.order, center: float = row_center) -> None:
+        def flush(
+            row_order: int = row.order,
+            center: float = row_center,
+            span: int = row_span,
+        ) -> None:
             nonlocal run
             if len(run) >= min_seats:
-                blocks.append(_make_block(run, total_rows, row_order, center))
+                blocks.append(
+                    _make_block(run, total_rows, row_order, center, span, prefer)
+                )
             run = []
 
         previous_position: int | None = None
@@ -64,16 +79,26 @@ def find_blocks(
 
 
 def _make_block(
-    seats: list[Seat], total_rows: int, order: int, row_center: float
+    seats: list[Seat],
+    total_rows: int,
+    order: int,
+    row_center: float,
+    row_span: int,
+    prefer: str,
 ) -> SeatBlock:
     row = seats[0].row
-    # Lower row order is the back of the auditorium in both providers.
     positions = [seat.grid_position for seat in seats]
     centre = (min(positions) + max(positions)) / 2
-    depth_score = (max(total_rows, 1) - order + 1) / max(total_rows, 1)
-    span = max(positions) - min(positions) + 1 if positions else 1
-    centrality = 1.0 / (1.0 + abs(centre - row_center) / max(span, 1))
-    score = round(depth_score * 0.75 + centrality * 0.25, 6)
+    # Lower row order is the back of the auditorium in both providers.
+    depth = (max(total_rows, 1) - order) / max(total_rows - 1, 1)
+    depth = min(max(depth, 0.0), 1.0)
+    if prefer == "any":
+        row_score = 1.0
+    else:
+        target = PREFERENCE_TARGETS[prefer]
+        row_score = max(0.0, 1.0 - abs(depth - target) / 0.5)
+    centrality = max(0.0, 1.0 - abs(centre - row_center) / max(row_span / 2, 1))
+    score = round(row_score * 0.7 + centrality * 0.3, 6)
     prices = [seat.price for seat in seats if seat.price is not None]
     ordered = sorted(
         (seat.number for seat in seats),

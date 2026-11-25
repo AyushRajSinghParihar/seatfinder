@@ -6,6 +6,7 @@ import sys
 from typing import Any
 
 from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 from .jsonutil import dumps
@@ -182,3 +183,40 @@ def print_seat_results(
             )
             console.print(render_seat_map(seat_map))
         console.print()
+
+
+def fetch_seats_with_progress(
+    service,
+    bundle,
+    console: Console,
+    *,
+    enabled: bool = True,
+    **kwargs,
+):
+    """Fetch seat maps while rendering progress on stderr."""
+
+    if not enabled or not bundle.shows:
+        return service.fetch_seats(bundle, **kwargs)
+    limit = kwargs.get("limit")
+    initial_total = min(len(bundle.shows), limit) if limit else len(bundle.shows)
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("{task.completed}/{task.total}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task("Fetching seat maps", total=initial_total)
+
+        def on_progress(index: int, total: int, show) -> None:
+            progress.update(
+                task,
+                total=total,
+                completed=max(index - 1, 0),
+                description=f"Fetching {show.platform} · {show.venue_name[:54]}",
+            )
+
+        results = service.fetch_seats(bundle, on_progress=on_progress, **kwargs)
+        progress.update(task, completed=progress.tasks[0].total or len(bundle.shows))
+        return results
