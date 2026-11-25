@@ -10,3 +10,4 @@ build/
 htmlcov/
 .uv-cache/
 .DS_Store
+.ruff_cache/
