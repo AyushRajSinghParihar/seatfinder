@@ -1,0 +1,24 @@
+{
+  "movies": [
+    {
+      "title": "Avengers: Doomsday",
+      "aliases": [
+        "doomsday",
+        "avengers doomsday",
+        "avengers: doomsday",
+        "avengers-doomsday"
+      ],
+      "default": true,
+      "language": "English",
+      "release_date": "2026-12-17",
+      "bms": {
+        "event_code": "ET00439706",
+        "slug": "avengers-doomsday"
+      },
+      "district": {
+        "content_id": "176735",
+        "slug": "avengers-doomsday"
+      }
+    }
+  ]
+}
