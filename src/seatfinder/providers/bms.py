@@ -616,7 +616,7 @@ def _shows_from_card(
                 city=city.name,
                 venue_id=venue_code,
                 venue_name=venue_name,
-                screen=str(raw_show.get("subtitleAcronym") or ""),
+                screen=str(data.get("screenName") or raw_show.get("screenName") or ""),
                 starts_at=_bms_start_time(show_date, data, raw_show),
                 format=format_value,
                 language=language_value,

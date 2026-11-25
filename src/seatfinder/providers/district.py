@@ -259,7 +259,7 @@ class DistrictProvider:
             info = cinema.get("cinemaInfo") or {}
             cinema_id = str(cinema.get("id") or info.get("id") or "")
             venue_name = info.get("label") or info.get("name") or f"Cinema {cinema_id}"
-            provider_id = str(info.get("providerId") or "")
+            default_provider_id = str(info.get("providerId") or "")
             sessions = list(cinema.get("sessions") or []) + list(cinema.get("extraSessions") or [])
             seen: set[str] = set()
             for session in sessions:
@@ -288,6 +288,7 @@ class DistrictProvider:
                 total = _int(session.get("total"))
                 status = "sold_out" if avail == 0 else ("available" if (avail or 0) > 0 else UNKNOWN)
                 tags = [str(t) for t in session.get("tags") or []]
+                provider_id = str(session.get("pid") or default_provider_id or "")
                 shows.append(
                     Show(
                         platform=self.name,
@@ -308,7 +309,7 @@ class DistrictProvider:
                         booking_url=self._booking_url(city, movie, date),
                         area_counts=area_counts,
                         refs={
-                            "cinema_id": cinema_id,
+                            "cinema_id": str(session.get("cid") or cinema_id),
                             "session_id": sid,
                             "provider_id": provider_id,
                             "screen_format": str(session.get("scrnFmt") or ""),
