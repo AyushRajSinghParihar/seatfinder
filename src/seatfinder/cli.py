@@ -122,6 +122,10 @@ def root(
     no_color: bool = typer.Option(False, "--no-color", help="Disable terminal colors"),
     quiet: bool = typer.Option(False, "--quiet", help="Suppress progress output"),
 ) -> None:
+    ctx.ensure_object(dict)
+    ctx.obj["json_output"] = json_output
+    ctx.obj["no_color"] = no_color
+    ctx.obj["quiet"] = quiet
     if ctx.invoked_subcommand is not None:
         return
     if not available_for_wizard():
@@ -136,12 +140,18 @@ def root(
 
 @app.command("cities")
 def cities_command(
+    ctx: typer.Context,
     json_output: bool = typer.Option(False, "--json"),
     pretty: bool = typer.Option(True, "--pretty/--compact"),
     no_color: bool = typer.Option(False, "--no-color"),
     quiet: bool = typer.Option(False, "--quiet"),
 ) -> None:
     """List cities known to seatfinder."""
+    globals_ = ctx.obj or {}
+    json_output = json_output or bool(globals_.get("json_output"))
+    no_color = no_color or bool(globals_.get("no_color"))
+    quiet = quiet or bool(globals_.get("quiet"))
+
     runtime = _runtime(json_output=json_output, pretty=pretty, no_color=no_color, quiet=quiet)
     try:
         service = _service(runtime, platform="both", no_cache=True, include_previews=False)
@@ -157,6 +167,7 @@ def cities_command(
 
 @app.command("movies")
 def movies_command(
+    ctx: typer.Context,
     city: str | None = typer.Option(None, "--city", "-c", help="City name or alias"),
     query: str | None = typer.Option(None, "--query", "-q", help="Title search"),
     platform: str = typer.Option("both", "--platform"),
@@ -169,6 +180,11 @@ def movies_command(
     no_cache: bool = typer.Option(False, "--no-cache"),
 ) -> None:
     """Search movies across platforms."""
+    globals_ = ctx.obj or {}
+    json_output = json_output or bool(globals_.get("json_output"))
+    no_color = no_color or bool(globals_.get("no_color"))
+    quiet = quiet or bool(globals_.get("quiet"))
+
     runtime = _runtime(
         json_output=json_output,
         pretty=pretty,
@@ -200,6 +216,7 @@ def movies_command(
 
 @app.command("shows")
 def shows_command(
+    ctx: typer.Context,
     city: str | None = typer.Option(None, "--city", "-c"),
     movie: str | None = typer.Option(None, "--movie", "-m", help="Movie title/alias; defaults to Doomsday"),
     date: str | None = typer.Option(None, "--date", "-d", help="YYYY-MM-DD or earliest"),
@@ -215,6 +232,11 @@ def shows_command(
     no_cache: bool = typer.Option(False, "--no-cache"),
 ) -> None:
     """List showtimes and coarse availability."""
+    globals_ = ctx.obj or {}
+    json_output = json_output or bool(globals_.get("json_output"))
+    no_color = no_color or bool(globals_.get("no_color"))
+    quiet = quiet or bool(globals_.get("quiet"))
+
     runtime = _runtime(
         json_output=json_output,
         pretty=pretty,
@@ -265,6 +287,7 @@ def shows_command(
 
 @app.command("seats")
 def seats_command(
+    ctx: typer.Context,
     city: str | None = typer.Option(None, "--city", "-c"),
     movie: str | None = typer.Option(None, "--movie", "-m"),
     date: str | None = typer.Option(None, "--date", "-d", help="YYYY-MM-DD or earliest"),
@@ -287,6 +310,11 @@ def seats_command(
     no_cache: bool = typer.Option(False, "--no-cache"),
 ) -> None:
     """Fetch live seat maps and find contiguous empty seats."""
+    globals_ = ctx.obj or {}
+    json_output = json_output or bool(globals_.get("json_output"))
+    no_color = no_color or bool(globals_.get("no_color"))
+    quiet = quiet or bool(globals_.get("quiet"))
+
     runtime = _runtime(
         json_output=json_output,
         pretty=pretty,
@@ -349,6 +377,7 @@ def seats_command(
 
 @app.command("doctor")
 def doctor_command(
+    ctx: typer.Context,
     live: bool = typer.Option(False, "--live", help="Run live connectivity checks"),
     json_output: bool = typer.Option(False, "--json"),
     pretty: bool = typer.Option(True, "--pretty/--compact"),
@@ -358,6 +387,11 @@ def doctor_command(
     proxy: str | None = typer.Option(None, "--proxy"),
 ) -> None:
     """Show configuration and connectivity status."""
+    globals_ = ctx.obj or {}
+    json_output = json_output or bool(globals_.get("json_output"))
+    no_color = no_color or bool(globals_.get("no_color"))
+    quiet = quiet or bool(globals_.get("quiet"))
+
     runtime = _runtime(
         json_output=json_output,
         pretty=pretty,
@@ -550,6 +584,7 @@ def _parse_duration(value: str) -> float:
 
 @app.command("watch")
 def watch_command(
+    ctx: typer.Context,
     city: str | None = typer.Option(None, "--city", "-c"),
     movie: str | None = typer.Option(None, "--movie", "-m"),
     date: str | None = typer.Option(None, "--date", "-d"),
@@ -568,6 +603,11 @@ def watch_command(
     no_cache: bool = typer.Option(False, "--no-cache"),
 ) -> None:
     """Poll until a matching contiguous seat block appears."""
+    globals_ = ctx.obj or {}
+    ndjson = ndjson or bool(globals_.get("json_output"))
+    no_color = no_color or bool(globals_.get("no_color"))
+    quiet = quiet or bool(globals_.get("quiet"))
+
     runtime = _runtime(
         json_output=ndjson,
         no_color=no_color,
