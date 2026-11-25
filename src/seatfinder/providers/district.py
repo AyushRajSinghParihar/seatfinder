@@ -386,6 +386,7 @@ class DistrictProvider:
             headers=headers,
             max_attempts=1,
             rotate_on=(),
+            allow_statuses=(401,),
         )
         if response.status_code == 401:
             self._warmed.discard(f"{city.district_city_key}:{movie.district_content_id}")
@@ -397,6 +398,7 @@ class DistrictProvider:
                 headers=self._seat_headers(city, movie, show),
                 max_attempts=1,
                 rotate_on=(),
+                allow_statuses=(401,),
             )
         if response.status_code == 403:
             raise BlockedError("District blocked the seat map request", hint="Try a residential connection or --proxy")

@@ -335,6 +335,12 @@ def seats_command(
         include_previews=include_previews,
     )
     try:
+        if min_seats < 1:
+            raise UsageError("min-seats must be at least 1")
+        if not all_shows and limit < 1:
+            raise UsageError("limit must be at least 1, or use --all")
+        if detail not in {"summary", "full", "none"}:
+            raise UsageError("detail must be one of: summary, full, none")
         city_obj, movie_obj = service.resolve(city, movie)
         bundle = service.fetch_shows(city_obj, movie_obj, date)
         _strict_check(bundle, runtime, "seats")
