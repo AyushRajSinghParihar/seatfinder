@@ -121,7 +121,11 @@ def root(
     json_output: bool = typer.Option(False, "--json", help="Machine-readable JSON output"),
     no_color: bool = typer.Option(False, "--no-color", help="Disable terminal colors"),
     quiet: bool = typer.Option(False, "--quiet", help="Suppress progress output"),
+    version: bool = typer.Option(False, "--version", is_eager=True, help="Print version and exit"),
 ) -> None:
+    if version:
+        typer.echo(__version__)
+        raise typer.Exit()
     ctx.ensure_object(dict)
     ctx.obj["json_output"] = json_output
     ctx.obj["no_color"] = no_color
@@ -623,6 +627,10 @@ def watch_command(
     try:
         interval_seconds = _parse_duration(interval)
         timeout_seconds = _parse_duration(timeout)
+        if interval_seconds < 1:
+            raise UsageError("interval must be at least 1s", hint="Use --interval 120s")
+        if timeout_seconds < 1:
+            raise UsageError("timeout must be at least 1s", hint="Use --timeout 30m")
         deadline = time.monotonic() + timeout_seconds
         city_obj, movie_obj = service.resolve(city, movie)
         seq = 0

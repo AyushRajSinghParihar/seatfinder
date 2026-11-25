@@ -764,11 +764,22 @@ def _match_show_area(area_name: str, area_counts: list[dict[str, Any]]) -> dict[
     wanted = _normalize(area_name)
     if not wanted:
         return None
-    for item in area_counts:
-        label = _normalize(str(item.get("label") or ""))
-        if label and (wanted == label or wanted in label or label in wanted):
-            return item
-    return None
+    exact = [
+        item
+        for item in area_counts
+        if _normalize(str(item.get("label") or "")) == wanted
+    ]
+    if exact:
+        return exact[0]
+    candidates = [
+        item
+        for item in area_counts
+        if (label := _normalize(str(item.get("label") or "")))
+        and (wanted in label or label in wanted)
+    ]
+    if not candidates:
+        return None
+    return min(candidates, key=lambda item: abs(len(_normalize(str(item.get("label") or ""))) - len(wanted)))
 
 
 def _extract_initial_state(html: str) -> dict[str, Any]:

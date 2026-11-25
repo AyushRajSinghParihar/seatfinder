@@ -192,6 +192,10 @@ class SeatService:
     ) -> list[dict]:
         if detail not in {"summary", "full", "none"}:
             raise UsageError("detail must be one of: summary, full, none")
+        if min_seats < 1:
+            raise UsageError("min_seats must be at least 1")
+        if limit is not None and limit < 1:
+            raise UsageError("limit must be at least 1, or use --all")
         shows = bundle.shows if limit is None else bundle.shows[:limit]
         output: list[dict] = []
         for show in shows:
