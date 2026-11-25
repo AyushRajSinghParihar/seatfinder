@@ -63,9 +63,64 @@ class SeatService:
         self._selected = list(PLATFORMS) if self.platform == "both" else [self.platform]
 
     def resolve(self, city: str | None, movie: str | None) -> tuple[City, MovieRef]:
-        city_obj = self.catalog.resolve_city(city or self.config.default_city or "")
+        city_name = city or self.config.default_city or ""
+        try:
+            city_obj = self.catalog.resolve_city(city_name)
+        except NotFoundError:
+            city_obj = self._city_from_bms(city_name)
         movie_obj = self.catalog.resolve_movie(movie or self.config.default_movie)
         return city_obj, movie_obj
+
+    def _city_from_bms(self, value: str) -> City:
+        from .catalog import normalize, slugify
+
+        wanted = normalize(value)
+        if not wanted:
+            raise NotFoundError("City is required", hint="Pass --city or run seatfinder interactively")
+        try:
+            regions = self.providers["bms"].regions()
+        except SeatfinderError as exc:
+            raise NotFoundError(
+                f"Unknown city: {value}",
+                hint="Run 'seatfinder cities' or pass a major Indian city",
+                detail=exc.message,
+            ) from exc
+        candidates = [
+            region
+            for region in regions
+            if wanted in {normalize(region.get("name") or ""), normalize(region.get("slug") or "")}
+        ]
+        if not candidates:
+            candidates = [
+                region
+                for region in regions
+                if wanted in normalize(region.get("name") or "")
+                or normalize(region.get("name") or "") in wanted
+            ]
+        if not candidates:
+            raise NotFoundError(
+                f"Unknown city: {value}",
+                hint="Run 'seatfinder cities' to see bundled cities",
+            )
+        region = candidates[0]
+        name = str(region.get("name") or value)
+        slug = str(region.get("slug") or slugify(name))
+        lat = region.get("lat")
+        lng = region.get("lng")
+        if lat is None or lng is None:
+            raise NotFoundError(
+                f"City {name} has no coordinates",
+                hint="Pass a major city or add coordinates to cities.json",
+            )
+        return City(
+            name=name,
+            aliases=[],
+            bms_slug=slug,
+            bms_region=str(region.get("code") or ""),
+            district_city_key=slug,
+            lat=float(lat),
+            lng=float(lng),
+        )
 
     def search_movies(self, city: City, query: str) -> list[dict]:
         combined: dict[str, dict] = {}

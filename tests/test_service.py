@@ -53,3 +53,16 @@ def test_both_platform_limit_includes_both_providers():
     selected = service._select_shows(shows, 4)
     assert {show.platform for show in selected} == {"bms", "district"}
     assert len(selected) == 4
+
+
+def test_unknown_city_falls_back_to_bms_regions(monkeypatch):
+    service = SeatService(Config(), platform="both")
+    monkeypatch.setattr(
+        service.providers["bms"],
+        "regions",
+        lambda: [{"name": "Kota", "slug": "kota", "code": "KOTA", "lat": 25.1, "lng": 75.8}],
+    )
+    city, _ = service.resolve("Kota", None)
+    assert city.name == "Kota"
+    assert city.bms_region == "KOTA"
+    assert city.lat == 25.1
