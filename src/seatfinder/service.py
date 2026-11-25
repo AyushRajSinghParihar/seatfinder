@@ -180,6 +180,21 @@ class SeatService:
             show_dates=sorted(show_dates),
         )
 
+    def _select_shows(self, shows: list[Show], limit: int | None) -> list[Show]:
+        if limit is None or len(shows) <= limit:
+            return list(shows)
+        if self.platform != "both":
+            return list(shows[:limit])
+        buckets = {platform: [show for show in shows if show.platform == platform] for platform in self._selected}
+        selected: list[Show] = []
+        while len(selected) < limit and any(buckets.values()):
+            for platform in self._selected:
+                queue = buckets[platform]
+                if queue and len(selected) < limit:
+                    selected.append(queue.pop(0))
+        selected.sort(key=lambda show: (show.starts_at, show.platform, show.venue_name))
+        return selected
+
     def fetch_seats(
         self,
         bundle: ShowBundle,
@@ -196,7 +211,7 @@ class SeatService:
             raise UsageError("min_seats must be at least 1")
         if limit is not None and limit < 1:
             raise UsageError("limit must be at least 1, or use --all")
-        shows = bundle.shows if limit is None else bundle.shows[:limit]
+        shows = self._select_shows(bundle.shows, limit)
         output: list[dict] = []
         for show in shows:
             provider = self.providers[show.platform]
