@@ -1,0 +1,27 @@
+{
+  "seatLayout": {
+    "colAreas": {
+      "objArea": [
+        {
+          "AreaNum": 1,
+          "AreaCode": "A",
+          "AreaDesc": "PREMIUM",
+          "AreaPrice": 500,
+          "objRow": [
+            {
+              "GridRowId": 1,
+              "PhyRowId": "A",
+              "objSeat": [
+                {"GridSeatNum": 1, "SeatStatus": "0", "displaySeatNumber": "1"},
+                {"GridSeatNum": 2, "SeatStatus": "1", "displaySeatNumber": "2"},
+                {"GridSeatNum": 3, "SeatStatus": "0", "displaySeatNumber": "3"},
+                {"GridSeatNum": 4, "SeatStatus": "1000", "displaySeatNumber": "4"},
+                {"GridSeatNum": 6, "SeatStatus": "0", "displaySeatNumber": "6"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

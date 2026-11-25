@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "showDates": ["2026-12-17", "2026-12-18"]
+  },
+  "pageData": {
+    "nearbyCinemas": [
+      {
+        "id": 1,
+        "cinemaInfo": {
+          "name": "Test Cinema",
+          "providerId": 335,
+          "chainKey": "PVR"
+        },
+        "sessions": [
+          {
+            "sid": "123",
+            "showTime": "2026-12-17T21:00",
+            "audi": "AUDI 1",
+            "scrnFmt": "2D",
+            "avail": 10,
+            "total": 20,
+            "tags": ["english"],
+            "mid": "MOV123",
+            "areas": [
+              {
+                "code": "A",
+                "label": "PREMIUM",
+                "price": 500,
+                "sAvail": 10,
+                "sTotal": 20
+              }
+            ]
+          }
+        ],
+        "extraSessions": []
+      }
+    ],
+    "farCinemas": []
+  }
+}
