@@ -6,7 +6,6 @@ import re
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
 
 import typer
 
@@ -28,7 +27,7 @@ from .output import (
     print_shows,
     print_warnings,
 )
-from .service import SeatService, today_ist
+from .service import SeatService
 from .wizard import available_for_wizard, run_wizard
 
 app = typer.Typer(

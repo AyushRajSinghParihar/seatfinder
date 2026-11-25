@@ -6,12 +6,18 @@ import random
 import re
 import string
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from ..cache import JsonCache
 from ..config import Config
-from ..errors import AuthError, BlockedError, SchemaError, UpstreamError
+from ..errors import (
+    AuthError,
+    BlockedError,
+    SchemaError,
+    SeatfinderError,
+    UpstreamError,
+)
 from ..http import HttpClient, new_request_id
 from ..jsonutil import now_iso
 from ..models import (
@@ -19,6 +25,7 @@ from ..models import (
     AVAILABLE,
     BOOKED,
     UNKNOWN,
+    City,
     MovieRef,
     ProviderResult,
     Seat,
@@ -27,7 +34,6 @@ from ..models import (
     SeatRow,
     Show,
     Warning,
-    City,
 )
 
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -52,7 +58,7 @@ def _ist_iso(value: str | None, fallback_date: str) -> str:
     if not value:
         return f"{fallback_date}T00:00:00+05:30"
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value)
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=IST)
         return parsed.astimezone(IST).isoformat(timespec="minutes")
@@ -358,7 +364,7 @@ class DistrictProvider:
                 if response.status_code < 500:
                     self._warmed.add(key)
                     return
-            except Exception:
+            except SeatfinderError:
                 continue
         self._warmed.add(key)
 

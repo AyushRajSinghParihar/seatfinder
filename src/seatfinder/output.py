@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .jsonutil import dumps
-from .models import City, MovieRef, Show, Warning
+from .models import City, Show, Warning
 
 
 def make_console(*, quiet: bool = False, no_color: bool = False) -> tuple[Console, Console]:
@@ -143,7 +143,7 @@ def print_seat_results(results: list[dict[str, Any]], console: Console, *, show_
             console.print(f"   [red]{error.get('code')}[/red] {error.get('message')}")
         if show_map and item.get("seat_map") and item["seat_map"].get("rows"):
             from .blocks import render_seat_map
-            from .models import SeatArea, SeatMap, SeatRow, Seat
+            from .models import Seat, SeatArea, SeatMap, SeatRow
 
             seat_map = SeatMap(
                 platform=item["platform"],

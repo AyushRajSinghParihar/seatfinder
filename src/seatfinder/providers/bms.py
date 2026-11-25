@@ -12,9 +12,9 @@ import json
 import random
 import re
 import time
-from datetime import datetime, timezone, timedelta
-from html import unescape
-from typing import Any, Iterable
+from collections.abc import Iterable
+from datetime import datetime, timedelta, timezone
+from typing import Any
 from urllib.parse import urljoin
 
 from cryptography.hazmat.primitives import padding
@@ -22,13 +22,14 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from ..cache import JsonCache
 from ..config import Config
-from ..errors import BlockedError, SchemaError, UpstreamError
-from ..http import HttpClient, multipart_fields, new_request_id
+from ..errors import BlockedError, SchemaError, SeatfinderError, UpstreamError
+from ..http import HttpClient, multipart_fields
 from ..jsonutil import now_iso
 from ..models import (
     AVAILABLE,
     BOOKED,
     UNKNOWN,
+    City,
     MovieRef,
     ProviderResult,
     Seat,
@@ -37,7 +38,6 @@ from ..models import (
     SeatRow,
     Show,
     Warning,
-    City,
 )
 
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -369,7 +369,7 @@ class BookMyShowProvider:
         for area in areas.values():
             if area.code in show_price_by_code and show_price_by_code[area.code] is not None:
                 area.price = _num(show_price_by_code[area.code])
-            if area.code in show_name_by_code and show_name_by_code[area.code]:
+            if show_name_by_code.get(area.code):
                 area.name = str(show_name_by_code[area.code])
                 continue
             matched = _match_show_area(area.name, show.area_counts)
@@ -505,7 +505,7 @@ def _extract_shows_from_state(
 
     old_dates = ((state.get("showtimesByEvent") or {}).get("showDates")) or {}
     if isinstance(old_dates, dict):
-        dates.update(str(key) for key in old_dates.keys() if re.fullmatch(r"\d{8}", str(key)))
+        dates.update(str(key) for key in old_dates if re.fullmatch(r"\d{8}", str(key)))
         date_data = old_dates.get(date_code)
         if isinstance(date_data, dict):
             static_venues = (
@@ -879,9 +879,13 @@ def _movie_slug_from_url(value: str) -> str:
     path = re.sub(r"^https?://[^/]+", "", value or "")
     segments = [segment for segment in path.split("/") if segment]
     for index, segment in enumerate(segments):
-        if segment.upper().startswith("ET") and segment[2:].isdigit():
-            if index > 0 and segments[index - 1] != "movies":
-                return segments[index - 1]
+        if (
+            segment.upper().startswith("ET")
+            and segment[2:].isdigit()
+            and index > 0
+            and segments[index - 1] != "movies"
+        ):
+            return segments[index - 1]
     return ""
 
 

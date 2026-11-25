@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from seatfinder.config import DEFAULT_BMS_SEAT_KEY, Config
-from seatfinder.models import MovieRef, Show, City
+from seatfinder.models import City, MovieRef, Show
 from seatfinder.providers.bms import (
     BookMyShowProvider,
     _extract_shows_from_state,

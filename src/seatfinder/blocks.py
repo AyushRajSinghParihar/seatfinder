@@ -28,10 +28,10 @@ def find_blocks(
             continue
         row_center = (min(seat.grid_position for seat in row.seats) + max(seat.grid_position for seat in row.seats)) / 2
 
-        def flush() -> None:
+        def flush(row_order: int = row.order, center: float = row_center) -> None:
             nonlocal run
             if len(run) >= min_seats:
-                blocks.append(_make_block(run, total_rows, row.order, row_center))
+                blocks.append(_make_block(run, total_rows, row_order, center))
             run = []
 
         previous_position: int | None = None

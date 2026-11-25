@@ -52,7 +52,7 @@ class Config:
     config_dir: Path = field(default_factory=lambda: Path(user_config_dir(APP_NAME)))
 
     @classmethod
-    def load(cls) -> "Config":
+    def load(cls) -> Config:
         config_dir = Path(user_config_dir(APP_NAME))
         data = _read_toml(config_dir / "config.toml")
         cfg = cls()

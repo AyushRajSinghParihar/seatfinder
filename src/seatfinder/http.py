@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 import time
 import uuid
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from curl_cffi import requests as curl_requests
 
@@ -100,7 +101,7 @@ class HttpClient:
                     headers=dict(raw.headers),
                     url=str(raw.url),
                 )
-            except Exception as exc:  # curl_cffi raises several transport errors
+            except Exception as exc:  # noqa: BLE001 - curl_cffi raises transport-specific errors
                 last_error = exc
                 if attempt < max_attempts:
                     time.sleep(backoff * attempt)
