@@ -24,3 +24,17 @@ def test_schema_command_is_machine_readable():
     assert "envelope" in payload
     assert "seats" in payload["commands"]
     assert payload["exit_codes"]["0"] == "success"
+
+
+def test_global_json_flag_applies_to_subcommands():
+    result = runner.invoke(app, ["--json", "cities", "--compact"])
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["ok"] is True
+    assert payload["command"] == "cities"
+
+
+def test_version_flag():
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert "0.1.0" in result.stdout
