@@ -344,7 +344,7 @@ def seats_command(
             area=area,
             include_accessible=include_accessible,
             limit=None if all_shows else limit,
-            detail=detail,
+            detail="full" if show_map and detail == "summary" else detail,
         )
         if json_output:
             data = bundle.to_dict()

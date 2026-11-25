@@ -105,16 +105,11 @@ def render_seat_map(seat_map: SeatMap, *, max_width: int = 100) -> str:
         if width > max_width:
             continue
         cells = [" "] * width
-        is_best = [" "] * width
         for seat in seats:
             index = seat.grid_position - low
             if 0 <= index < width:
-                cells[index] = symbols.get(seat.status, "?")
-                if seat.is_best:
-                    is_best[index] = "*"
+                cells[index] = "*" if seat.is_best else symbols.get(seat.status, "?")
         line = "".join(cells).rstrip()
-        if is_best.count("*"):
-            line += "  " + "".join(is_best).rstrip()
         lines.append(f"{row.label:>3} {line}")
     if not lines:
         return "(no seat rows returned)"
