@@ -9,9 +9,9 @@ human-like pace.
 ## Install
 
 ```bash
-uv tool install .
+uv tool install --python 3.12 .
 # or
-pipx install .
+pipx install --python 3.12 .
 ```
 
 Python 3.11–3.13 is supported. The BookMyShow client uses a Safari/Firefox TLS

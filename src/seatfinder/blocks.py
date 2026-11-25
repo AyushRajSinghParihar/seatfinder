@@ -113,7 +113,10 @@ def render_seat_map(seat_map: SeatMap, *, max_width: int = 100) -> str:
         for seat in seats:
             index = seat.grid_position - low
             if 0 <= index < width:
-                cells[index] = "*" if seat.is_best else symbols.get(seat.status, "?")
+                if seat.is_best and seat.status in {AVAILABLE, ACCESSIBLE}:
+                    cells[index] = "*"
+                else:
+                    cells[index] = symbols.get(seat.status, "?")
         line = "".join(cells).rstrip()
         lines.append(f"{row.label:>3} {line}")
     if not lines:

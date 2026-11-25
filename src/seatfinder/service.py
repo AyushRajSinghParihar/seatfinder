@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import random
+import time
 from dataclasses import dataclass, field
 from datetime import date as date_cls
 from datetime import datetime, timedelta, timezone
@@ -288,7 +290,9 @@ class SeatService:
             raise UsageError("limit must be at least 1, or use --all")
         shows = self._select_shows(bundle.shows, limit)
         output: list[dict] = []
-        for show in shows:
+        for index, show in enumerate(shows):
+            if index:
+                time.sleep(random.uniform(0.8, 1.6))
             provider = self.providers[show.platform]
             item = show.to_dict()
             try:
