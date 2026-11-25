@@ -1,0 +1,71 @@
+{
+  "showtimesFunctionalApi": {
+    "queries": {
+      "fetchPrimaryDynamic-ET00000001---20261217-NCR": {
+        "endpointName": "fetchPrimaryDynamic",
+        "data": {
+          "data": {
+            "topStickyWidgets": [
+              {"cta": {"additionalData": {"dateCode": "20261217"}}},
+              {"cta": {"additionalData": {"dateCode": "20261218"}}}
+            ],
+            "showtimeWidgets": [
+              {
+                "type": "groupList",
+                "data": [
+                  {
+                    "type": "venue-card",
+                    "additionalData": {
+                      "venueCode": "TEST",
+                      "venueName": "Test Cinema"
+                    },
+                    "showtimesSections": [
+                      {
+                        "showtimes": [
+                          {
+                            "title": "09:00 PM",
+                            "subtitleAcronym": "ENG",
+                            "additionalData": {
+                              "sessionId": "123",
+                              "availStatus": "3",
+                              "showDateCode": "20261217",
+                              "showDateTime": "202612172100",
+                              "showTime": "09:00 PM"
+                            },
+                            "customGestureCTA": {
+                              "additionalData": {
+                                "bottomSheetData": {
+                                  "widgets": [
+                                    {"variableData": {"format": "English • 2D"}},
+                                    {
+                                      "variableData": {
+                                        "seatType": "PREMIUM",
+                                        "seatCost": "₹ 500.00",
+                                        "seatAvalibility": "AVAILABLE"
+                                      }
+                                    },
+                                    {
+                                      "variableData": {
+                                        "seatType": "RECLINER",
+                                        "seatCost": "₹ 900.00",
+                                        "seatAvalibility": "SOLD OUT"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

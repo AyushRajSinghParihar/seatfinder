@@ -1,0 +1,47 @@
+{
+  "showtimesByEvent": {
+    "showDates": {
+      "20261217": {
+        "primaryStatic": {
+          "data": {
+            "venues": {
+              "OLD": {
+                "venueName": "Old Cinema",
+                "showSeatNo": "Y"
+              }
+            }
+          }
+        },
+        "dynamic": {
+          "data": {
+            "showtimeWidgets": [
+              {
+                "type": "venue-card",
+                "additionalData": {
+                  "venueCode": "OLD",
+                  "venueName": "Old Cinema"
+                },
+                "showtimes": [
+                  {
+                    "title": "06:00 PM",
+                    "screenAttr": "2D",
+                    "additionalData": {
+                      "sessionId": "999",
+                      "availStatus": "1",
+                      "showDateCode": "20261217",
+                      "showTime": "06:00 PM",
+                      "attributes": "2D",
+                      "categories": [
+                        {"areaCatCode": "0000000001", "priceDesc": "GOLD", "curPrice": "400.00"}
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
